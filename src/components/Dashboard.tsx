@@ -4,13 +4,14 @@ interface DashboardProps {
   monthlyTotal: number
   yearlyTotal: number
   count: number
+  currency: string
 }
 
-export function Dashboard({ monthlyTotal, yearlyTotal, count }: DashboardProps) {
+export function Dashboard({ monthlyTotal, yearlyTotal, count, currency }: DashboardProps) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <StatCard label="Monthly spend" value={formatCurrency(monthlyTotal)} accent="sky" />
-      <StatCard label="Yearly spend" value={formatCurrency(yearlyTotal)} accent="violet" />
+      <StatCard label="Monthly spend" value={formatCurrency(monthlyTotal, currency)} accent="sky" />
+      <StatCard label="Yearly spend" value={formatCurrency(yearlyTotal, currency)} accent="violet" />
       <StatCard
         label="Subscriptions"
         value={String(count)}

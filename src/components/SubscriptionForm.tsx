@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BILLING_CYCLES, CATEGORIES } from '@shared/types'
+import { getSupportedCurrencies } from '@/lib/billing'
 import type { BillingCycle, Subscription, SubscriptionInput } from '@shared/types'
 
 interface SubscriptionFormProps {
@@ -25,6 +26,7 @@ export function SubscriptionForm({
   onClose,
   onSubmit,
 }: SubscriptionFormProps) {
+  const currencies = getSupportedCurrencies()
   const [form, setForm] = useState<SubscriptionInput>(emptyForm())
   const [customCategory, setCustomCategory] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -120,6 +122,22 @@ export function SubscriptionForm({
                 className="field-input"
               />
             </Field>
+            <Field label="Currency">
+              <select
+                value={form.currency ?? 'USD'}
+                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                className="field-input"
+              >
+                {currencies.map((currency) => (
+                  <option key={currency} value={currency}>
+                    {currency}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Billing cycle">
               <select
                 value={form.billing_cycle}

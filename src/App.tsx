@@ -6,7 +6,8 @@ import { SearchBar } from '@/components/SearchBar'
 import { SubscriptionForm } from '@/components/SubscriptionForm'
 import { SubscriptionList } from '@/components/SubscriptionList'
 import { useSubscriptions } from '@/hooks/useSubscriptions'
-import { computeTotals } from '@/lib/billing'
+import { computeTotals, getSupportedCurrencies } from '@/lib/billing'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 
 export default function App() {
   const [search, setSearch] = useState('')
@@ -26,8 +27,17 @@ export default function App() {
 
   const { subscriptions, loading, error, create, update, remove } =
     useSubscriptions(filters)
+  const { displayCurrency, setDisplayCurrency, rates, error: ratesError } = useExchangeRates()
+  const availableCurrencies = useMemo(
+    () => getSupportedCurrencies().filter((currency) => rates[currency]),
+    [rates],
+  )
+  const activeCurrency = rates[displayCurrency] ? displayCurrency : 'USD'
 
-  const totals = useMemo(() => computeTotals(subscriptions), [subscriptions])
+  const totals = useMemo(
+    () => computeTotals(subscriptions, activeCurrency, rates),
+    [subscriptions, activeCurrency, rates],
+  )
 
   const handleSubmit = async (input: SubscriptionInput) => {
     if (editing) {
@@ -62,6 +72,18 @@ export default function App() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-50">Subtrak</h1>
         <div className="flex flex-1 flex-wrap items-center gap-3 sm:justify-end">
           <SearchBar value={search} onChange={setSearch} />
+          <select
+            value={activeCurrency}
+            onChange={(event) => setDisplayCurrency(event.target.value)}
+            className="field-input w-auto"
+            aria-label="Display currency"
+          >
+            {availableCurrencies.map((currency) => (
+              <option key={currency} value={currency}>
+                {currency}
+              </option>
+            ))}
+          </select>
           <button
             type="button"
             onClick={openAddForm}
@@ -76,6 +98,7 @@ export default function App() {
         monthlyTotal={totals.monthly}
         yearlyTotal={totals.yearly}
         count={totals.count}
+        currency={activeCurrency}
       />
 
       <FilterBar
@@ -90,12 +113,19 @@ export default function App() {
           {error}
         </div>
       )}
+      {ratesError && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+          Exchange rates could not be refreshed. Showing the last cached rates.
+        </div>
+      )}
 
       <SubscriptionList
         subscriptions={subscriptions}
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        displayCurrency={activeCurrency}
+        rates={rates}
       />
 
       <SubscriptionForm

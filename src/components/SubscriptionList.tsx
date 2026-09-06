@@ -1,17 +1,21 @@
 import type { Subscription } from '@shared/types'
 import {
+  convertCurrency,
   daysUntilRenewal,
   formatCurrency,
   formatCycleLabel,
   formatRenewalDate,
   isRenewalSoon,
 } from '@/lib/billing'
+import type { ExchangeRates } from '@/lib/billing'
 
 interface SubscriptionListProps {
   subscriptions: Subscription[]
   loading: boolean
   onEdit: (subscription: Subscription) => void
   onDelete: (subscription: Subscription) => void
+  displayCurrency: string
+  rates: ExchangeRates
 }
 
 export function SubscriptionList({
@@ -19,6 +23,8 @@ export function SubscriptionList({
   loading,
   onEdit,
   onDelete,
+  displayCurrency,
+  rates,
 }: SubscriptionListProps) {
   if (loading) {
     return (
@@ -58,6 +64,8 @@ export function SubscriptionList({
               subscription={sub}
               onEdit={onEdit}
               onDelete={onDelete}
+              displayCurrency={displayCurrency}
+              rates={rates}
             />
           ))}
         </tbody>
@@ -70,10 +78,14 @@ function SubscriptionRow({
   subscription,
   onEdit,
   onDelete,
+  displayCurrency,
+  rates,
 }: {
   subscription: Subscription
   onEdit: (subscription: Subscription) => void
   onDelete: (subscription: Subscription) => void
+  displayCurrency: string
+  rates: ExchangeRates
 }) {
   const soon = isRenewalSoon(subscription.renewal_date)
   const days = daysUntilRenewal(subscription.renewal_date)
@@ -87,7 +99,10 @@ function SubscriptionRow({
         )}
       </td>
       <td className="px-4 py-3 text-slate-300">
-        {formatCurrency(subscription.amount, subscription.currency)}
+        {formatCurrency(
+          convertCurrency(subscription.amount, subscription.currency, displayCurrency, rates),
+          displayCurrency,
+        )}
         <span className="text-slate-500">
           {formatCycleLabel(subscription.billing_cycle)}
         </span>

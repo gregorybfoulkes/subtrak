@@ -7,12 +7,14 @@ import { electronSimple } from 'vite-plugin-electron/multi-env'
 import { notBundle } from 'vite-plugin-electron/plugin'
 import pkg from './package.json'
 
+// Preserve the existing Vite configuration.
+
 const external = Object.keys(
   'dependencies' in pkg ? (pkg.dependencies as Record<string, string>) : {},
 )
 
 export default defineConfig(({ command }) => {
-  rmSync('dist-electron', { recursive: true, force: true })
+  rmSync('dist-electron', { recursive: true, force: true });
 
   const isServe = command === 'serve'
   const isBuild = command === 'build'
@@ -62,3 +64,6 @@ export default defineConfig(({ command }) => {
     clearScreen: false,
   }
 })
+
+
+
