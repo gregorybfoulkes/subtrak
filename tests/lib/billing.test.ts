@@ -3,6 +3,8 @@ import {
   computeTotals,
   convertCurrency,
   formatCurrency,
+  getSupportedCurrencies,
+  isCurrencyCode,
   toMonthlyAmount,
 } from '../../src/lib/billing'
 
@@ -23,6 +25,26 @@ describe('billing utilities', () => {
   it('formats any supported ISO currency code', () => {
     expect(formatCurrency(4, 'USD')).toBe('$4.00')
     expect(formatCurrency(4, 'EUR')).toContain('4.00')
+  })
+
+  it('normalizes currency codes before formatting and validation', () => {
+    expect(formatCurrency(4, 'eur')).toContain('4.00')
+    expect(isCurrencyCode('eur')).toBe(true)
+    expect(getSupportedCurrencies()).toContain('USD')
+  })
+
+  it('rejects unsupported currency codes', () => {
+    expect(() => formatCurrency(4, 'XXX')).toThrow(RangeError)
+  })
+
+  it('returns the same amount when converting to the same currency', () => {
+    expect(convertCurrency(4, 'usd', 'USD', rates)).toBe(4)
+  })
+
+  it('throws when either conversion rate is unavailable', () => {
+    expect(() => convertCurrency(4, 'USD', 'AUD', rates)).toThrow(
+      'Exchange rate unavailable for USD to AUD',
+    )
   })
 
   it('calculates totals in the selected display currency', () => {
