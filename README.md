@@ -142,6 +142,9 @@ npm run dev        # Start the Electron app with the Vite development server
 npm run build      # Build renderer/main/preload and package installers
 npm run preview    # Preview the built renderer through Vite
 npm run typecheck  # Run tsc --noEmit
+npm test            # Run the Vitest suite once
+npm run test:watch  # Run Vitest in watch mode
+npm run test:coverage # Run tests with coverage thresholds
 ```
 
 The `postinstall` script runs `electron-builder install-app-deps` so native dependencies are prepared after installation.
@@ -166,11 +169,7 @@ electron-builder.json        Installer and artifact configuration
 
 ## Verification and current boundaries
 
-The repository currently provides a TypeScript check but no test runner or automated unit/integration test suite. The verified baseline command is:
-
-```bash
-npm run typecheck
-```
+The repository provides Vitest unit tests, TypeScript checking, coverage thresholds, and a GitHub Actions workflow. See [TESTING.md](TESTING.md) for the test pyramid, integration/E2E plan, and templates. The current automated tests focus on billing and exchange-rate services; IPC/database integration and Electron E2E coverage remain planned.
 
 There is no configured cloud service, authentication, backup/export workflow, currency conversion service, recurring renewal automation, notification system, CI workflow, or release signing configuration in v1. The local database should be backed up using the platform's `userData` directory if data preservation is required.
 
