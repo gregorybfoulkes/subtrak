@@ -1,11 +1,11 @@
 import type { Subscription } from '@shared/types'
 import {
-  convertCurrency,
   daysUntilRenewal,
   formatCurrency,
   formatCycleLabel,
   formatRenewalDate,
   isRenewalSoon,
+  tryConvertCurrency,
 } from '@/lib/billing'
 import type { ExchangeRates } from '@/lib/billing'
 
@@ -89,6 +89,12 @@ function SubscriptionRow({
 }) {
   const soon = isRenewalSoon(subscription.renewal_date)
   const days = daysUntilRenewal(subscription.renewal_date)
+  const convertedAmount = tryConvertCurrency(
+    subscription.amount,
+    subscription.currency,
+    displayCurrency,
+    rates,
+  )
 
   return (
     <tr className="border-b border-slate-800/80 last:border-0 hover:bg-slate-800/40">
@@ -99,10 +105,9 @@ function SubscriptionRow({
         )}
       </td>
       <td className="px-4 py-3 text-slate-300">
-        {formatCurrency(
-          convertCurrency(subscription.amount, subscription.currency, displayCurrency, rates),
-          displayCurrency,
-        )}
+        {convertedAmount === null
+          ? formatCurrency(subscription.amount, subscription.currency)
+          : formatCurrency(convertedAmount, displayCurrency)}
         <span className="text-slate-500">
           {formatCycleLabel(subscription.billing_cycle)}
         </span>

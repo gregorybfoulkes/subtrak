@@ -52,6 +52,21 @@ export function convertCurrency(
   toCurrency: string,
   rates: ExchangeRates,
 ): number {
+  const converted = tryConvertCurrency(amount, fromCurrency, toCurrency, rates)
+  if (converted === null) {
+    const from = fromCurrency.toUpperCase()
+    const to = toCurrency.toUpperCase()
+    throw new Error(`Exchange rate unavailable for ${from} to ${to}`)
+  }
+  return converted
+}
+
+export function tryConvertCurrency(
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string,
+  rates: ExchangeRates,
+): number | null {
   const from = fromCurrency.toUpperCase()
   const to = toCurrency.toUpperCase()
 
@@ -60,7 +75,7 @@ export function convertCurrency(
   const fromRate = rates[from]
   const toRate = rates[to]
   if (!fromRate || !toRate) {
-    throw new Error(`Exchange rate unavailable for ${from} to ${to}`)
+    return null
   }
 
   return (amount / fromRate) * toRate
@@ -104,28 +119,26 @@ export function computeTotals(
   displayCurrency = 'USD',
   rates: ExchangeRates = { USD: 1 },
 ) {
-  const monthly = subscriptions.reduce(
-    (sum, sub) =>
-      sum +
-      convertCurrency(
-        toMonthlyAmount(sub.amount, sub.billing_cycle),
-        sub.currency,
-        displayCurrency,
-        rates,
-      ),
-    0,
-  )
-  const yearly = subscriptions.reduce(
-    (sum, sub) =>
-      sum +
-      convertCurrency(
-        toYearlyAmount(sub.amount, sub.billing_cycle),
-        sub.currency,
-        displayCurrency,
-        rates,
-      ),
-    0,
-  )
+  const monthly = subscriptions.reduce<number | null>((sum, sub) => {
+    if (sum === null) return null
+    const amount = tryConvertCurrency(
+      toMonthlyAmount(sub.amount, sub.billing_cycle),
+      sub.currency,
+      displayCurrency,
+      rates,
+    )
+    return amount === null ? null : sum + amount
+  }, 0)
+  const yearly = subscriptions.reduce<number | null>((sum, sub) => {
+    if (sum === null) return null
+    const amount = tryConvertCurrency(
+      toYearlyAmount(sub.amount, sub.billing_cycle),
+      sub.currency,
+      displayCurrency,
+      rates,
+    )
+    return amount === null ? null : sum + amount
+  }, 0)
 
   return { monthly, yearly, count: subscriptions.length }
 }

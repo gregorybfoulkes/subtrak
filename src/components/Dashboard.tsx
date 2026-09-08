@@ -1,8 +1,8 @@
 import { formatCurrency } from '@/lib/billing'
 
 interface DashboardProps {
-  monthlyTotal: number
-  yearlyTotal: number
+  monthlyTotal: number | null
+  yearlyTotal: number | null
   count: number
   currency: string
 }
@@ -10,8 +10,16 @@ interface DashboardProps {
 export function Dashboard({ monthlyTotal, yearlyTotal, count, currency }: DashboardProps) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <StatCard label="Monthly spend" value={formatCurrency(monthlyTotal, currency)} accent="sky" />
-      <StatCard label="Yearly spend" value={formatCurrency(yearlyTotal, currency)} accent="violet" />
+      <StatCard
+        label="Monthly spend"
+        value={monthlyTotal === null ? 'Unavailable' : formatCurrency(monthlyTotal, currency)}
+        accent="sky"
+      />
+      <StatCard
+        label="Yearly spend"
+        value={yearlyTotal === null ? 'Unavailable' : formatCurrency(yearlyTotal, currency)}
+        accent="violet"
+      />
       <StatCard
         label="Subscriptions"
         value={String(count)}

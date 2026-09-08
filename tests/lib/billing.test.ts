@@ -6,6 +6,7 @@ import {
   getSupportedCurrencies,
   isCurrencyCode,
   toMonthlyAmount,
+  tryConvertCurrency,
 } from '../../src/lib/billing'
 
 const rates = { USD: 1, EUR: 0.9, GBP: 0.8 }
@@ -45,6 +46,33 @@ describe('billing utilities', () => {
     expect(() => convertCurrency(4, 'USD', 'AUD', rates)).toThrow(
       'Exchange rate unavailable for USD to AUD',
     )
+  })
+
+  it('returns null when a conversion rate is unavailable', () => {
+    expect(tryConvertCurrency(4, 'USD', 'AUD', rates)).toBeNull()
+  })
+
+  it('does not fail totals when a subscription rate is unavailable', () => {
+    const subscriptions = [
+      {
+        id: '1',
+        name: 'Travel',
+        amount: 10,
+        currency: 'AUD',
+        billing_cycle: 'monthly' as const,
+        category: 'Other',
+        renewal_date: '2026-09-10',
+        notes: null,
+        created_at: '',
+        updated_at: '',
+      },
+    ]
+
+    expect(computeTotals(subscriptions, 'USD', rates)).toMatchObject({
+      monthly: null,
+      yearly: null,
+      count: 1,
+    })
   })
 
   it('calculates totals in the selected display currency', () => {
